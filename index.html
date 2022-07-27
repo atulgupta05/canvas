@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload Download</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <label for="uploader"> Select File:</label>
+    <input type="file" id="uploader" />
+    <button>Download</button>
+    <div class="zoom" id="zoom">
+        <canvas id="canvas"></canvas>
+    </div>
+    <button>Download</button>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const reader = new FileReader();
+        const img = new Image();
+        const UploadImage = (e) => {
+            reader.onload = () => {
+                img.onload = () => {
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    ctx.drawImage(img, 0, 0)
+                };
+                img.src = reader.result;
+            };
+
+
+            reader.readAsDataURL(e.target.files[0]);
+        };
+        const imageLoader = document.getElementById("uploader");
+        imageLoader.addEventListener("change", UploadImage);
+
+        function download() {
+            const image = canvas.toDataURL();
+            const link = document.createElement("a");
+            link.href = image;
+            link.download = "image.png";
+            link.click();
+
+        }
+
+        document.querySelector("button").addEventListener("click", download);
+
+        var scale = 1;
+        panning = false;
+        pointX = 0;
+        pointY = 0;
+        start = { x: 0, y: 0 },
+            zoom = document.getElementById("zoom");
+
+        function setTransform() {
+            zoom.style.transform = "translate(" + pointX + "px," + pointY + "px ) scale(" + scale + ")";
+        }
+
+        zoom.onmousedown = function (e) {
+            e.preventDefault();
+
+            start = { x: e.clientX - pointX, y: e.clientY - pointY };
+            panning = true;
+        }
+
+        zoom.onmouseup = function (e) {
+            panning = false;
+        }
+
+        zoom.onmousemove = function (e) {
+            e.preventDefault();
+
+            if (!panning) {
+                return;
+            }
+
+            pointX = (e.clientX - start.x);
+            pointY = (e.clientY - start.y);
+            setTransform();
+        }
+
+        zoom.onmousewheel = function (e) {
+            e.preventDefault();
+
+            var xs = (e.clientX - pointX) / scale,
+                ys = (e.clientY - pointY) / scale,
+                delta = (e.wheelDelta ? e.wheelDelta : -e.deltaY);
+            (delta > 0) ? (scale *= 1.2) : (scale /= 1.2);
+
+            pointX = e.clientX - xs * scale;
+            pointY = e.clientY - ys * scale;
+
+            setTransform();
+        }
+
+    </script>
+</body>
+
+</html>
